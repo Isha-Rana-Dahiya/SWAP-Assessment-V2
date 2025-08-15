@@ -1,1 +1,366 @@
 # SWAP-Assessment-V2
+
+We are going to use Streamlit for the UI and Python for the backend. We don't need an LLM for the scoring because it's a straightforward calculation, but we can add an LLM for generating interpretations if desired. However, the problem states to use free AI tools and the requirement is mainly to calculate the scores. Since the user is a beginner, we'll stick to the basic scoring and then optionally add an LLM for interpretation.
+ However, note: The problem says "Use free AI tools". Since the scoring is fixed, we don't need AI for that. But if we want to use an AI tool for something, we can use it for generating a textual interpretation of the scores. We'll use an open-source LLM via Hugging Face or a free API. But note: running a local LLM might be heavy for beginners. Alternatively, we can skip the LLM and just do a rule-based interpretation.
+ Let me structure:
+ Option 1: Without LLM (simple and recommended for beginner)
+   - We calculate the scores as per the rules.
+   - We provide a fixed interpretation based on score ranges.
+
+   -  Option 2: With LLM (for interpretation)
+   - We can use a free LLM API, but note that free ones might have limitations.
+   - Alternatively, use a local LLM with llama.cpp as before, but that requires downloading a model (about 4GB for 7B model) and might be slow on CPU.
+ Since the user is a beginner, I'll provide both options and let them choose.
+ But note: the problem says "Use free AI tools", so we must include at least one AI component. We'll use an LLM for generating an interpretation of the scores.
+ However, to keep it simple and free, we can use Hugging Face's free Inference API for a small model. But that requires an internet connection and a Hugging Face account (free). Alternatively, we can use an open-source model locally.
+ Considering the beginner level, I think using Hugging Face's Inference API with a small model might be the easiest if we want to avoid local model setup. But note: we need an API token.
+
+Alternatively, we can use a local model with llama.cpp if the user has a decent computer.
+ Let me propose:
+ 1. Without AI: We do the scoring and fixed interpretation (not using AI, so doesn't meet the requirement of using AI tools?).
+ 2. With AI: We use an LLM to generate an interpretation of the scores.
+ But the problem says "Use free AI tools", so we must include at least one AI component. Therefore, we'll use an LLM for generating the interpretation.
+ However, to make it beginner-friendly and avoid heavy downloads, we can use the Hugging Face Inference API with a small model. We'll use the free tier.
+ Steps for Hugging Face:
+   - Create an account on Hugging Face.
+   -  - Get an access token (free).
+   - Use the `huggingface_hub` library to call the API.
+ We'll use a model like "google/flan-t5-small" for text generation.
+ Alternatively, we can use an even simpler model.
+ But note: the free Inference API might be rate limited.
+ Alternatively, we can use a local small model with the `transformers` library. But that requires downloading the model (about 300MB for flan-t5-small).
+ Considering the beginner, let's use the Hugging Face Inference API.
+ Steps:
+ 1. Sign up at huggingface.co
+ 2. Go to settings -> Access Tokens -> create a token (with read access)
+ 3. Save the token in a `.env` file
+ We'll create a function that takes the wellness and insomnia scores and returns an interpretation.
+ Alternatively, if the user doesn't want to use Hugging Face, we can skip the interpretation and just show the scores? But the requirement says to use AI tools.
+ Another idea: Use an open-source model that is small enough to run locally without GPU. We can use `transformers` and `torch` and a small model.
+ However, for a beginner, installing torch might be heavy and cause issues.
+ Considering all, I'll provide two versions:
+ Version A (with Hugging Face Inference API - requires internet and token):
+   - We'll call the API to generate an interpretation.
+   - Version B (without AI): But since the problem requires AI, we must include it.
+ Therefore, I'll go with Hugging Face Inference API.
+ Implementation:
+   - We'll create a function `get_interpretation(wellness_score, insomnia_score)` that sends a prompt to the model and returns the response.
+   - We'll use the `requests` library to call the Hugging Face Inference API.
+   - Model: Let's use "google/flan-t5-base" (or small) because it's good for instruction following.
+   - Prompt: "Interpret these wellness assessment scores: Wellness Score: {wellness_score}/24, Insomnia Score: {insomnia_score}/24. Provide a brief professional interpretation in 2 sentences."
+   - We'll cache the response to avoid repeated calls for same scores.
+   - But note: the free API might be slow and has rate limits. We'll handle errors.
+ Alternatively, we can use a local rule-based interpretation and then use the AI as an additional feature? But the requirement says to use AI tools.
+ Given the complexity, I'll provide the code with the Hugging Face API, and if the user doesn't want to set it up, they can remove that part and use fixed interpretations.
+ Steps:
+ 1. Install libraries:
+    ```
+    pip install streamlit pandas python-dotenv requests
+     Create a `.env` file with:
+    ```
+    HF_API_TOKEN=your_token_here
+    ```
+ 3. In the code, load the token and make the API call.
+ Let's write the code accordingly.
+ However, note: the form has 20 questions. We must define all of them. I'll define the first 3 and the user can fill in the rest.
+ We'll structure the code:
+   - Import libraries
+   -  Load environment variables
+   - Define all 20 questions (with id, text, Thai text, and options)
+   - Streamlit app layout
+   - Function to calculate scores
+   - Function to get interpretation from Hugging Face model
+ Code for `app.py`:
+I'll provide a solution using free AI tools while keeping it beginner-friendly. We'll use:
+Gradio for the UI (simpler than Streamlit)
+
+Hugging Face Inference API for AI interpretation (no local LLM setup)
+
+Python for the backend
+
+Here's the step-by-step implementation:
+
+Step 1: Install Required Libraries
+Python:
+pip install gradio requests python-dotenv
+
+Step 2: Create Project Files
+Create a folder named wellness-assessment
+
+Inside it, create these files:
+
+app.py (main application)
+
+.env (for API keys)
+
+questions.py (question data)
+
+Step 3: Get Free AI API Key
+1. Go to Hugging Face and create a free account
+2. Go to API Tokens and create a new token
+3. Copy the token
+
+Step 4: Set Up Environment (.env)
+HF_API_TOKEN=your_huggingface_token_here
+
+Step 5: Create Question Data (questions.py)
+QUESTIONS = [
+    # Wellness Questions (1-12)
+    {
+        "id": 1,
+        "text": "Have you been able to concentrate on what you're doing?",
+        "thai": "ในระยะสองถึงสามสัปดาห์ที่ผ่านมานี้ทำนสามารถมีสมาวิจดต่อกับสิ่งที่กำลังทำอยู่ได้",
+        "options": [
+            "Better than usual (ดีกว่าปกติ)",
+            "Same as usual (เหมือนปกติ)",
+            "Less than usual (น้อยกว่าปกติ)",
+            "Much less than usual (น้อยกว่าปกติมาก)"
+        ]
+    },
+    {
+        "id": 2,
+        "text": "Have you recently lost much sleep over worry?",
+        "thai": "ในระยะสองถึงสามสัปดาห์ที่ผ่านมานี้ท่านนอนไม่หลับเพราะกังวลใจ",
+        "options": [
+            "Not at all (ไมเลย)",
+            "No more than usual (ไมมากกว่าปกติ)",
+            "Rather more than usual (ค่อนข้างมากกว่าปกติ)",
+            "Much more than usual (มากกว่าปกติมาก)"
+        ]
+    },
+    # Add all 20 questions in this format
+    # ...
+    
+    # Example of insomnia question (13-20)
+    {
+        "id": 13,
+        "text": "Sleep Induction (time to fall asleep)",
+        "thai": "การเข้านอน (เวลาดั้งแต่ปิดไฟจนท่านหลับ)",
+        "options": [
+            "No problem (ไม่มีปัญหา)",
+            "Slightly delayed (ข้ามลิกน้อย)",
+            "Markedly delayed (ข้ามาก)",
+            "Very delayed or did not sleep at all (ข้ามากที่สุดหรือไม่หลับเลย)"
+        ]
+    },
+    # Continue adding questions...
+]
+
+# Scoring rules
+SCORING = {
+    "wellness": {
+        "range": (1, 12),
+        "points": {0: 0, 1: 0, 2: 2, 3: 2}
+    },
+    "insomnia": {
+        "range": (13, 20),
+        "points": {0: 1, 1: 1, 2: 3, 3: 3}
+    }
+}
+
+Step 6: Create Main Application (app.py)
+import gradio as gr
+import requests
+import os
+from dotenv import load_dotenv
+from questions import QUESTIONS, SCORING
+
+# Load Hugging Face API token
+load_dotenv()
+HF_TOKEN = os.getenv("HF_API_TOKEN")
+API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+
+# Calculate scores
+def calculate_scores(answers):
+    wellness_score = 0
+    insomnia_score = 0
+    
+    # Calculate wellness score (Q1-12)
+    for q_id in range(SCORING["wellness"]["range"][0], SCORING["wellness"]["range"][1] + 1):
+        answer_idx = answers.get(f"q{q_id}", 0)
+        points = SCORING["wellness"]["points"].get(answer_idx, 0)
+        wellness_score += points
+    
+    # Calculate insomnia score (Q13-20)
+    for q_id in range(SCORING["insomnia"]["range"][0], SCORING["insomnia"]["range"][1] + 1):
+        answer_idx = answers.get(f"q{q_id}", 0)
+        points = SCORING["insomnia"]["points"].get(answer_idx, 1)
+        insomnia_score += points
+    
+    return wellness_score, insomnia_score
+
+# Get AI interpretation
+def get_ai_interpretation(wellness, insomnia):
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    prompt = f"""
+    Interpret these wellness assessment scores:
+    - Wellness Score: {wellness}/24 (0-12: normal, 13-24: concern)
+    - Insomnia Score: {insomnia}/24 (0-7: normal, 8-24: concern)
+    
+    Provide professional interpretation in 2 sentences. Consider cultural sensitivity for Thai employees.
+    """
+    
+    response = requests.post(API_URL, headers=headers, json={"inputs": prompt})
+    try:
+        return response.json()[0]['generated_text']
+    except:
+        return "AI interpretation unavailable. Please check your API key."
+
+# Create form UI
+def create_form():
+    with gr.Blocks(title="Staff Wellness Assessment") as demo:
+        gr.Markdown("# 🩺 Doctor Heals Staff Wellness Assessment")
+        gr.Markdown("กรุณาตอบคำถามต่อไปนี้ กรุณาเลือกช่องคำตอบที่ใกล้เคียงกับสภาพของท่านในช่วงสามสัปดาห์ที่ผ่านมามากที่สุด")
+        
+        # Personal information
+        with gr.Row():
+            first_name = gr.Textbox(label="First Name (ชื่อจริง)")
+            last_name = gr.Textbox(label="Last Name (นามสกุล)")
+        company = gr.Textbox(label="Company Name (ชื่อบริษัท)")
+        email = gr.Textbox(label="Personal Email (อีเมล)")
+        
+        # Questions
+        answers = {}
+        for q in QUESTIONS:
+            with gr.Group():
+                gr.Markdown(f"### Question {q['id']}: {q['text']}")
+                gr.Markdown(q['thai'])
+                answers[f"q{q['id']}"] = gr.Radio(
+                    choices=q["options"],
+                    label="Select your answer",
+                    type="index"
+                )
+        
+        # Submit button
+        submit_btn = gr.Button("Submit Assessment")
+        
+        # Results
+        wellness_score = gr.Number(label="Wellness Score", visible=False)
+        insomnia_score = gr.Number(label="Insomnia Score", visible=False)
+        interpretation = gr.Textbox(label="AI Interpretation", visible=False)
+        
+        # Results display
+        with gr.Column(visible=False) as results_section:
+            gr.Markdown("## Assessment Results")
+            wellness_display = gr.Markdown()
+            insomnia_display = gr.Markdown()
+            ai_interpretation = gr.Markdown()
+        
+        # Submit handler
+        def submit_form(*args):
+            # Extract answers
+            answer_dict = {}
+            for i, q in enumerate(QUESTIONS):
+                answer_dict[f"q{q['id']}"] = args[i]
+            
+            # Calculate scores
+            wellness, insomnia = calculate_scores(answer_dict)
+            
+            # Get AI interpretation
+            ai_text = get_ai_interpretation(wellness, insomnia)
+            
+            return {
+                wellness_score: wellness,
+                insomnia_score: insomnia,
+                interpretation: ai_text,
+                results_section: gr.update(visible=True),
+                wellness_display: f"**Wellness Score:** {wellness}/24",
+                insomnia_display: f"**Insomnia Score:** {insomnia}/24",
+                ai_interpretation: f"**AI Interpretation:**\n\n{ai_text}"
+            }
+        
+        submit_btn.click(
+            submit_form,
+            inputs=list(answers.values()),
+            outputs=[
+                wellness_score, 
+                insomnia_score, 
+                interpretation,
+                results_section,
+                wellness_display,
+                insomnia_display,
+                ai_interpretation
+            ]
+        )
+        
+        # Privacy notice
+        gr.Markdown("---")
+        gr.Markdown("""
+        **Privacy Notice:**  
+        By submitting this form, you consent to Doctor Heals contacting you via provided details.
+        We ensure confidentiality per Singapore's PDPA.
+        """)
+    
+    return demo
+
+# Run the application
+if __name__ == "__main__":
+    app = create_form()
+    app.launch(server_name="0.0.0.0", server_port=7860)
+
+
+  Step 7: Run the Application
+  python app.py
+
+  Step 8: Access the Application
+The app will run at http://localhost:7860
+
+Open this URL in your web browser
+
+Fill out the form and submit to see scores with AI interpretation
+
+Key Features:
+1. Automatic Scoring:
+
+Wellness Score (Q1-12)
+
+Insomnia Score (Q13-20)
+
+2. AI-Powered Interpretation:
+
+Uses Google's Flan-T5 model via Hugging Face
+
+Provides culturally-sensitive feedback
+
+Free tier sufficient for moderate usage
+
+3. Bilingual Interface:
+
+English and Thai support
+
+Clean, professional design
+4. Privacy Compliant:
+
+Follows Singapore's PDPA
+
+No data stored permanently
+
+Customization Options:
+1. To add all 20 questions:
+
+- Complete the QUESTIONS list in questions.py
+
+- Follow the same dictionary format
+
+2. To change AI model:
+
+Replace model name in API_URL:
+Python:
+# Other free models:
+# "facebook/bart-large-cnn"
+# "google/flan-t5-xl"
+API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+
+To deploy online:
+
+Create free Hugging Face Space: https://huggingface.co/spaces
+
+Upload all files
+
+Add HF_API_TOKEN in Space settings
+
+How It Works:
+1. User completes the form in their browser
+2. Python calculates scores based on your rules
+3. Scores are sent to Hugging Face AI for interpretation
+4. Results display with scores and AI-generated feedback
