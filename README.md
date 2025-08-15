@@ -1,57 +1,39 @@
 # SWAP-Assessment-V2
 
-We are going to use Streamlit for the UI and Python for the backend. We don't need an LLM for the scoring because it's a straightforward calculation, but we can add an LLM for generating interpretations if desired. However, the problem states to use free AI tools and the requirement is mainly to calculate the scores. Since the user is a beginner, we'll stick to the basic scoring and then optionally add an LLM for interpretation.
- However, note: The problem says "Use free AI tools". Since the scoring is fixed, we don't need AI for that. But if we want to use an AI tool for something, we can use it for generating a textual interpretation of the scores. We'll use an open-source LLM via Hugging Face or a free API. But note: running a local LLM might be heavy for beginners. Alternatively, we can skip the LLM and just do a rule-based interpretation.
- Let me structure:
- Option 1: Without LLM (simple and recommended for beginner)
-   - We calculate the scores as per the rules.
-   - We provide a fixed interpretation based on score ranges.
+Use Streamlit for the UI and Python for the backend. We will add an LLM for generating interpretations. We can use AI for generating a textual interpretation of the scores. We'll use an open-source LLM via Hugging Face or a free API. 
 
-   -  Option 2: With LLM (for interpretation)
-   - We can use a free LLM API, but note that free ones might have limitations.
-   - Alternatively, use a local LLM with llama.cpp as before, but that requires downloading a model (about 4GB for 7B model) and might be slow on CPU.
- Since the user is a beginner, I'll provide both options and let them choose.
- But note: the problem says "Use free AI tools", so we must include at least one AI component. We'll use an LLM for generating an interpretation of the scores.
- However, to keep it simple and free, we can use Hugging Face's free Inference API for a small model. But that requires an internet connection and a Hugging Face account (free). Alternatively, we can use an open-source model locally.
- Considering the beginner level, I think using Hugging Face's Inference API with a small model might be the easiest if we want to avoid local model setup. But note: we need an API token.
-
-Alternatively, we can use a local model with llama.cpp if the user has a decent computer.
- Let me propose:
- 1. Without AI: We do the scoring and fixed interpretation (not using AI, so doesn't meet the requirement of using AI tools?).
- 2. With AI: We use an LLM to generate an interpretation of the scores.
- But the problem says "Use free AI tools", so we must include at least one AI component. Therefore, we'll use an LLM for generating the interpretation.
- However, to make it beginner-friendly and avoid heavy downloads, we can use the Hugging Face Inference API with a small model. We'll use the free tier.
+   - With LLM (for interpretation)
+   - We can use a free LLM API
+   - We can also use a local LLM with llama.cpp 
+ We'll use an LLM for generating an interpretation of the scores.
+ However, to keep it simple and free, we can use Hugging Face's free Inference API for a small model. We need a Hugging Face account (free). 
+ 
+We can use a local model with llama.cpp
+ With AI: We use an LLM to generate an interpretation of the scores.
  Steps for Hugging Face:
    - Create an account on Hugging Face.
    -  - Get an access token (free).
    - Use the `huggingface_hub` library to call the API.
  We'll use a model like "google/flan-t5-small" for text generation.
- Alternatively, we can use an even simpler model.
- But note: the free Inference API might be rate limited.
- Alternatively, we can use a local small model with the `transformers` library. But that requires downloading the model (about 300MB for flan-t5-small).
- Considering the beginner, let's use the Hugging Face Inference API.
+ Use the Hugging Face Inference API.
  Steps:
  1. Sign up at huggingface.co
  2. Go to settings -> Access Tokens -> create a token (with read access)
  3. Save the token in a `.env` file
+    
  We'll create a function that takes the wellness and insomnia scores and returns an interpretation.
- Alternatively, if the user doesn't want to use Hugging Face, we can skip the interpretation and just show the scores? But the requirement says to use AI tools.
- Another idea: Use an open-source model that is small enough to run locally without GPU. We can use `transformers` and `torch` and a small model.
- However, for a beginner, installing torch might be heavy and cause issues.
  Considering all, I'll provide two versions:
  Version A (with Hugging Face Inference API - requires internet and token):
    - We'll call the API to generate an interpretation.
-   - Version B (without AI): But since the problem requires AI, we must include it.
- Therefore, I'll go with Hugging Face Inference API.
+   
+    Therefore, I'll go with Hugging Face Inference API.
  Implementation:
    - We'll create a function `get_interpretation(wellness_score, insomnia_score)` that sends a prompt to the model and returns the response.
    - We'll use the `requests` library to call the Hugging Face Inference API.
    - Model: Let's use "google/flan-t5-base" (or small) because it's good for instruction following.
    - Prompt: "Interpret these wellness assessment scores: Wellness Score: {wellness_score}/24, Insomnia Score: {insomnia_score}/24. Provide a brief professional interpretation in 2 sentences."
    - We'll cache the response to avoid repeated calls for same scores.
-   - But note: the free API might be slow and has rate limits. We'll handle errors.
- Alternatively, we can use a local rule-based interpretation and then use the AI as an additional feature? But the requirement says to use AI tools.
- Given the complexity, I'll provide the code with the Hugging Face API, and if the user doesn't want to set it up, they can remove that part and use fixed interpretations.
+   
  Steps:
  1. Install libraries:
     ```
@@ -61,9 +43,8 @@ Alternatively, we can use a local model with llama.cpp if the user has a decent 
     HF_API_TOKEN=your_token_here
     ```
  3. In the code, load the token and make the API call.
- Let's write the code accordingly.
- However, note: the form has 20 questions. We must define all of them. I'll define the first 3 and the user can fill in the rest.
- We'll structure the code:
+ 
+ Structure the code:
    - Import libraries
    -  Load environment variables
    - Define all 20 questions (with id, text, Thai text, and options)
@@ -71,7 +52,7 @@ Alternatively, we can use a local model with llama.cpp if the user has a decent 
    - Function to calculate scores
    - Function to get interpretation from Hugging Face model
  Code for `app.py`:
-I'll provide a solution using free AI tools while keeping it beginner-friendly. We'll use:
+We'll use:
 Gradio for the UI (simpler than Streamlit)
 
 Hugging Face Inference API for AI interpretation (no local LLM setup)
